@@ -1,0 +1,42 @@
+# q2_3_china_confirmed_cases_plot.py
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# load data
+confirmed_cases_filepath = 'covid_19_confirmed_v1.csv'
+try:
+    df_confirmed = pd.read_csv(confirmed_cases_filepath)
+except FileNotFoundError as e:
+    print(f"file not found - {e}. check if csv file is in the right folder")
+    exit()
+
+# make it long format
+df_confirmed_long = df_confirmed.melt(id_vars=['Province/State', 'Country/Region', 'Lat', 'Long'],
+                                      var_name='Date', value_name='Confirmed_Cases')
+
+# date to datetime
+df_confirmed_long['Date'] = pd.to_datetime(df_confirmed_long['Date'])
+
+# only china data
+df_china = df_confirmed_long[df_confirmed_long['Country/Region'] == 'China']
+
+# sum all provinces by date
+df_china_daily = df_china.groupby('Date')['Confirmed_Cases'].sum().reset_index()
+
+# plot
+plt.figure(figsize=(12, 7))
+sns.lineplot(data=df_china_daily, x='Date', y='Confirmed_Cases', marker='o', markersize=4,
+             linestyle='-', color='red', alpha=0.8)
+
+plt.title('confirmed cases over time in china', fontsize=16, color='darkred')
+plt.xlabel('date', fontsize=12, color='gray')
+plt.ylabel('confirmed cases', fontsize=12, color='gray')
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.xticks(rotation=45)
+plt.tight_layout()
+
+plt.savefig('china_confirmed_cases_plot.png')
+
+plt.show()
